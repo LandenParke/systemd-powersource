@@ -1124,6 +1124,36 @@ static void manager_gc(Manager *m, bool drop_not_started) {
         }
 }
 
+// CEN3031 Opensource contribution start
+static HandleAction manager_effective_idle_action(Manager *m) {
+        assert(m);
+
+        if (manager_is_docked_or_external_displays(m)) {
+                if (m->idle_action_docked != _HANDLE_ACTION_INVALID)
+                        return m->idle_action_docked;
+        } else if (manager_is_on_external_power()) {
+                if (m->idle_action_ep != _HANDLE_ACTION_INVALID)
+                        return m->idle_action_ep;
+        }
+
+        return m->idle_action;
+}
+
+static usec_t manager_effective_idle_action_usec(Manager *m) {
+        assert(m);
+
+        if (manager_is_docked_or_external_displays(m)) {
+                if (m->idle_action_usec_docked != USEC_INFINITY)
+                        return m->idle_action_usec_docked;
+        } else if (manager_is_on_external_power()) {
+                if (m->idle_action_usec_ep != USEC_INFINITY)
+                        return m->idle_action_usec_ep;
+        }
+
+        return m->idle_action_usec;
+}
+// CEN3031 Opensource contribution end
+
 static int manager_dispatch_idle_action(sd_event_source *s, uint64_t t, void *userdata) {
         Manager *m = ASSERT_PTR(userdata);
         struct dual_timestamp since;
